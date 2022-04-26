@@ -729,3 +729,66 @@ public:
 
 
 
+### T11 盛水最多的容器
+
+**双指针**
+
+代码
+
+```c++
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        // 从左开始 一个
+        int n = height.size();
+        int left = 0;
+        int right = n - 1;
+        // 
+        int ans = 0;
+        while(left < right){
+            // 把短的 往中间移动
+            int square = min(height[left],height[right])*(right-left);
+            ans = max(ans,square);
+            if(height[left]<=height[right]){
+                left++;
+            }else{
+                right--;
+            }
+        }
+        return ans;
+    }
+};
+```
+
+---
+
+### T56 合并区间
+
+**双指针、排序、合并**
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        // 先排序 后 合并
+        sort(intervals.begin(),intervals.end());
+        vector<vector<int> > ans;
+        for(int i=0;i<intervals.size(); ){
+            int left = intervals[i][0];
+            int right = intervals[i][1];
+            int j = i+1;
+            // 更新有边界
+            while(j < intervals.size() && right >= intervals[j][0]){
+                right = max(right,intervals[j][1]);
+                j++;
+            }
+            ans.push_back({left,right});
+            i = j;
+        }
+        return ans;
+    }
+};
+```
+
+---
+
