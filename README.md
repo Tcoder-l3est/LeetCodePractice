@@ -792,3 +792,160 @@ public:
 
 ---
 
+## CSP-2
+
+> 专门练习CSP 第二题
+
+### 202203-2 差分数组
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+/*
+* 利用差分数组
+* 卡70% 分数
+*/
+const int MAXN = 200010;
+int res[MAXN];
+int goOutNum, askNum, timeWait;
+int main() {
+    cin >> goOutNum >> askNum >> timeWait;
+    // Cin goout info
+    for (int i = 0; i < goOutNum; i++) {
+        int t, c;
+        cin >> t >> c;
+        // 在【l, r】时间段内做核酸，则t时刻可进入
+        int l = max(t - timeWait - c + 1, 0);
+        l = min(l, 200000);
+        int r = max(0, t - timeWait);
+        r = min(r, 200000);
+        //在【l, r】时间段内能出行的计划个数加一
+        res[l] += 1;
+        res[r + 1] -= 1;
+    }
+    //利用差分计算每个时间的能出行个数
+    for (int i = 1; i < 200001; i++)
+        res[i] += res[i - 1];
+    for (int i = 0; i < askNum; i++){
+        int q;
+        cin >> q;
+        cout << res[q] << endl;
+    }
+    return 0;
+}
+```
+
+### 202104-2 二维前缀和
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+/*
+* 二维前缀和
+*/
+const int MAXN = 605;
+// 图像
+int Pic[MAXN][MAXN];
+int sum[MAXN][MAXN];
+// size 取值范围 邻域范围 阈值
+int n, L, r, t;
+
+bool judge(int x,int y) {
+    int left = max(1, x - r);
+    int up = max(1, y - r);
+    int right = min(n, x + r);
+    int down = min(n, y + r);
+    double s = sum[right][down] - sum[left - 1][down] - sum[right][up - 1] + sum[left - 1][up - 1];
+    double count = (right - left + 1) * (down - up + 1);
+    return (s / count) <= t ? true : false;
+}
+
+int main() {
+    cin >> n >> L >> r >> t;
+    for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= n; j++) {
+            cin >> Pic[i][j];
+            sum[i][j] = sum[i - 1][j] + sum[i][j - 1] - sum[i - 1][j - 1] + Pic[i][j];
+        }
+    int ans = 0;
+    for (int i = 1; i <= n; i++) 
+        for (int j = 1; j <= n; j++) 
+            if (judge(i, j))
+                ans++;
+    cout << ans << "\n";
+      
+    return 0;
+}
+```
+
+### 2021-12-2 差分！
+
+[CSP-2序列查询新解_Vanghua的博客-CSDN博客](https://blog.csdn.net/qq_37464878/article/details/123120603)
+
+差分 加 分段零区间
+
+```c++
+#include<bits/stdc++.h>
+using namespace std;
+#define ll long long
+/*
+* 二维前缀和
+*/
+// 个数 区间右值
+int n, N;
+
+// 计算Gx 数列前 pos项的和
+ll getGxSum(int pos, int r) {
+    // 前pos项中完整长度为R的区间个数
+    int seqNum = (pos + 1) / r;
+    // 最后一个不完整的空间个数，为0or1
+    int lastSeqNum = (pos + 1) % r == 0 ? 0 : 1;
+    // 前seqNum个区间的和
+    ll sum = (ll)seqNum * (seqNum - 1) / 2 * r; // 二分之N(N-1)d ?? 
+    ll lastsum = (ll)seqNum * lastSeqNum * ((pos + 1) % r);
+    return sum + lastsum;
+}
+
+// 计算[left,right)的g-f绝对值
+ll geterror(int left, int right, int r, int i) {
+    int fx, gmin, gmax, changeIndex;
+    ll sum = 0;
+    fx = i;
+    gmin = left / r;
+    gmax = (right - 1) / r;
+    // 如果fx 全都比 gx 大 可以直接减
+    if (fx >= gmax)
+        sum += (ll)(right - left) * i - (getGxSum(right - 1, r) - getGxSum(left - 1, r));
+    else if (fx <= gmin)
+        sum += (getGxSum(right - 1, r) - getGxSum(left - 1, r)) - (ll)(right - left) * i;
+    else { // 不是全小于 中间有等于
+        for (int j = gmin; j <= gmax; j++) 
+            if (j >= i) {
+                changeIndex = left + (j - gmin) * r;
+                sum += (ll)(changeIndex - left) * i - (getGxSum(changeIndex - 1, r) - getGxSum(left - 1, r));
+                sum += (getGxSum(right - 1, r) - getGxSum(changeIndex - 1, r)) - (ll)(right - changeIndex) * i;
+                break;
+            }
+    }
+    return sum;
+}
+
+int main() {
+    cin >> n >> N;
+    int r = N / (n + 1);
+    // 相邻两个数
+    int left = 0;
+    int right = 0;
+    ll error = 0;
+    for (int i = 0; i < n; i++) {
+        left = right;
+        cin >> right;
+        error += geterror(left, right, r, i);
+    }
+
+    error += geterror(right, N, r, n);
+    cout << error << "\n";
+    return 0;
+}
+```
+
